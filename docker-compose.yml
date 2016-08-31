@@ -1,0 +1,70 @@
+version: '2'
+services:
+
+  web:
+    build: docker/python
+    command: python /src/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/src
+    ports:
+      - "8000:8000"
+    environment:
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    depends_on:
+      - db
+      # - cache
+      # - broker
+      # - workers
+    links:
+      - db
+      # - cache
+      # - broker
+      # - workers
+    env_file:
+          - docker/base.env
+
+  # workers:
+  #   build: docker/python
+  #   command: celery --app=resmioproject worker -Q scheduled,celery,priority
+  #   volumes:
+  #     - .:/src
+  #   environment:
+  #     - C_FORCE_ROOT=1
+  #     - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+  #   depends_on:
+  #     - db
+  #     - cache
+  #     - broker
+  #   links:
+  #     - db
+  #     - cache
+  #     - broker
+  #   env_file:
+  #         - docker/base.env
+
+  db:
+    build: docker/postgres
+    image: postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - docker/base.env
+    volumes:
+      - ".dbcache:/var/lib/postgresql/data"
+
+  # cache:
+  #   build: docker/redis
+  #   ports:
+  #     - "6379:6379"
+  #   env_file:
+  #         - docker/base.env
+
+  # broker:
+  #   build: docker/rabbitmq
+  #   ports:
+  #     - "5672:5672"
+  #     - "8080:15672"
+  #   environment:
+  #     - RABBITMQ_NODENAME=rabbitmq1
+  #   env_file:
+  #         - docker/base.env
